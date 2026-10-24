@@ -1,3 +1,4 @@
+#include "Widget/ModMenu.h"
 #include <time.h>
 #include <SDL.h>
 #include "ZenGarden.h"
@@ -5871,6 +5872,7 @@ void Board::SetTutorialState(TutorialState theTutorialState)
 //0x415920
 void Board::UpdateGame()
 {
+	ModCheats::ApplyToBoard(this);
 	UpdateGameObjects();
 	if (StageHasFog() && mFogBlownCountDown > 0)
 	{

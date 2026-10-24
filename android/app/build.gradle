@@ -1,0 +1,55 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Set by CI (see .github/workflows/android.yml)
+def vcpkgRoot = System.getenv("VCPKG_ROOT") ?: System.getenv("VCPKG_INSTALLATION_ROOT")
+
+android {
+    namespace 'io.github.aalezz.pvzandroid'
+    compileSdk 34
+    ndkVersion System.getenv("ANDROID_NDK_VERSION") ?: null
+
+    defaultConfig {
+        applicationId 'io.github.aalezz.pvzandroid'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '0.1'
+
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+
+        externalNativeBuild {
+            cmake {
+                cppFlags '-std=c++17'
+                arguments "-DANDROID_STL=c++_shared",
+                          "-DCMAKE_TOOLCHAIN_FILE=${vcpkgRoot}/scripts/buildsystems/vcpkg.cmake",
+                          "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=${System.getenv('ANDROID_NDK_ROOT') ?: System.getenv('ANDROID_NDK_HOME')}/build/cmake/android.toolchain.cmake",
+                          "-DVCPKG_TARGET_TRIPLET=arm64-android",
+                          "-DVCPKG_MANIFEST_MODE=OFF",
+                          "-DCMAKE_BUILD_TYPE=Release"
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file('../../CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug // sideload build: signed with the debug key
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

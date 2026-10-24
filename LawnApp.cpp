@@ -36,6 +36,7 @@
 #include "Lawn/Widget/AlmanacDialog.h"
 #include "Lawn/Widget/NewUserDialog.h"
 #include "Lawn/Widget/ContinueDialog.h"
+#include "Lawn/Widget/ModMenu.h"
 #include "Lawn/System/ReanimationLawn.h"
 #include "Lawn/Widget/ChallengeScreen.h"
 #include "Lawn/Widget/NewOptionsDialog.h"
@@ -736,6 +737,14 @@ void LawnApp::DoContinueDialog()
 	ContinueDialog* aDialog = new ContinueDialog(this);
 	CenterDialog(aDialog, aDialog->mWidth, aDialog->mHeight);
 	AddDialog(Dialogs::DIALOG_CONTINUE, aDialog);
+}
+
+void LawnApp::DoModMenu()
+{
+	ModMenuDialog* aDialog = new ModMenuDialog(this);
+	CenterDialog(aDialog, aDialog->mWidth, aDialog->mHeight);
+	AddDialog(Dialogs::DIALOG_MODMENU, aDialog);
+	mWidgetManager->SetFocus(aDialog);
 }
 
 //0x4502C0

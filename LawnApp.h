@@ -183,6 +183,7 @@ public:
 	/*inline*/ bool					WriteCurrentUserConfig();
 	void							DoNeedRegisterDialog();
 	void							DoContinueDialog();
+	void							DoModMenu();
 	void							DoPauseDialog();
 	void							FinishModelessDialogs();
 	virtual Dialog*					DoDialog(int theDialogId, bool isModal, const SexyString& theDialogHeader, const SexyString& theDialogLines, const SexyString& theDialogFooter, int theButtonMode);

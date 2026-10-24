@@ -25,6 +25,10 @@ NewOptionsDialog::NewOptionsDialog(LawnApp* theApp, bool theFromGameSelector) :
     mAlmanacButton = MakeButton(NewOptionsDialog::NewOptionsDialog_Almanac, this, __S("[VIEW_ALMANAC_BUTTON]"));
     mRestartButton = MakeButton(NewOptionsDialog::NewOptionsDialog_Restart, this, __S("[RESTART_LEVEL_BUTTON]")); // @Patoke: wrong local name
     mBackToMainButton = MakeButton(NewOptionsDialog::NewOptionsDialog_MainMenu, this, __S("[MAIN_MENU_BUTTON]"));
+    mModMenuButton = MakeButton(NewOptionsDialog::NewOptionsDialog_ModMenu, this, __S("MOD MENU"));
+#ifndef __ANDROID__
+    mModMenuButton->SetVisible(false); // no room on the desktop layout
+#endif
 
     mBackToGameButton = MakeNewButton(
         Dialog::ID_OK, 
@@ -98,6 +102,7 @@ NewOptionsDialog::~NewOptionsDialog()
     delete mSfxVolumeSlider;
     delete mFullscreenCheckbox;
     delete mHardwareAccelerationCheckbox;
+    delete mModMenuButton;
     delete mAlmanacButton;
     delete mRestartButton;
     delete mBackToMainButton;
@@ -123,6 +128,11 @@ void NewOptionsDialog::AddedToManager(Sexy::WidgetManager* theWidgetManager)
     AddWidget(mHardwareAccelerationCheckbox);
     AddWidget(mFullscreenCheckbox);
     AddWidget(mBackToGameButton);
+    AddWidget(mModMenuButton);
+#ifdef __ANDROID__
+    mHardwareAccelerationCheckbox->SetVisible(false);
+    mFullscreenCheckbox->SetVisible(false);
+#endif
 }
 
 //0x45C930
@@ -137,6 +147,7 @@ void NewOptionsDialog::RemovedFromManager(Sexy::WidgetManager* theWidgetManager)
     RemoveWidget(mBackToMainButton);
     RemoveWidget(mBackToGameButton);
     RemoveWidget(mRestartButton);
+    RemoveWidget(mModMenuButton);
 }
 
 //0x45C9D0
@@ -151,6 +162,7 @@ void NewOptionsDialog::Resize(int theX, int theY, int theWidth, int theHeight)
     mRestartButton->Resize(mAlmanacButton->mX, mAlmanacButton->mY + 43, 209, 46);
     mBackToMainButton->Resize(mRestartButton->mX, mRestartButton->mY + 43, 209, 46);
     mBackToGameButton->Resize(30, 381, mBackToGameButton->mWidth, mBackToGameButton->mHeight);
+    mModMenuButton->Resize(107, 187, 209, 46);
 
     if (mFromGameSelector)
     {
@@ -186,8 +198,13 @@ void NewOptionsDialog::Draw(Sexy::Graphics* g)
 
     TodDrawString(g, __S("Music"), 186, 140 + aMusicOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
     TodDrawString(g, __S("Sound FX"), 186, 167 + aSfxOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+#ifndef __ANDROID__
     TodDrawString(g, __S("3D Acceleration"), 274, 197 + a3DAccelOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
     TodDrawString(g, __S("Full Screen"), 274, 229 + aFullScreenOffset, FONT_DWARVENTODCRAFT18, aTextColor, DrawStringJustification::DS_ALIGN_RIGHT);
+#else
+    (void)a3DAccelOffset;
+    (void)aFullScreenOffset;
+#endif
 }
 
 //0x45CF50
@@ -375,6 +392,10 @@ void NewOptionsDialog::ButtonDepress(int theId)
         }
         break;
     }
+
+    case NewOptionsDialog::NewOptionsDialog_ModMenu:
+        mApp->DoModMenu();
+        break;
 
     case NewOptionsDialog::NewOptionsDialog_Update:
         mApp->CheckForUpdates();

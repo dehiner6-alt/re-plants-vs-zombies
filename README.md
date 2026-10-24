@@ -118,3 +118,13 @@ Whenever you need to leave a comment for other developers to find you should do 
 - The GLFW team for their amazing work
 - PopCap for creating the amazing PvZ franchise (and making their game engine public)
 - All the contributors which have worked or are actively working in this amazing project
+
+## Android (experimental)
+
+An Android port lives in `android/` (SDL2 + OpenGL ES 3, arm64-v8a). CI builds an APK with `.github/workflows/android.yml`.
+
+Copy `main.pak` and the `properties/` folder from your own PvZ GOTY copy to
+`Android/data/io.github.aalezz.pvzandroid/files/` before launching.
+
+The pause menu's Options screen has a **MOD MENU** button (infinite sun, no cooldown, auto-collect, kill zombies).
+Using it flags the profile as having used cheats.

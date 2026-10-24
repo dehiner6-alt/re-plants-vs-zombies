@@ -1,0 +1,45 @@
+name: Android build
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+
+      - name: Native dependencies (vcpkg, arm64-android)
+        run: |
+          export ANDROID_NDK_HOME="${ANDROID_NDK_LATEST_HOME:-$ANDROID_NDK_ROOT}"
+          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> "$GITHUB_ENV"
+          $VCPKG_INSTALLATION_ROOT/vcpkg install --triplet arm64-android \
+            sdl2 libpng libjpeg-turbo libvorbis libogg mpg123 libopenmpt zlib glm
+
+      - name: Fetch SDL's Java glue matching the installed SDL2 version
+        run: |
+          INC=$VCPKG_INSTALLATION_ROOT/installed/arm64-android/include/SDL2/SDL_version.h
+          MAJ=$(grep -m1 '#define SDL_MAJOR_VERSION' $INC | awk '{print $3}')
+          MIN=$(grep -m1 '#define SDL_MINOR_VERSION' $INC | awk '{print $3}')
+          PAT=$(grep -m1 '#define SDL_PATCHLEVEL' $INC | awk '{print $3}')
+          echo "SDL2 $MAJ.$MIN.$PAT"
+          curl -fsSL "https://github.com/libsdl-org/SDL/archive/refs/tags/release-$MAJ.$MIN.$PAT.tar.gz" -o sdl.tgz
+          mkdir -p sdl-src && tar xzf sdl.tgz -C sdl-src --strip-components=1
+          mkdir -p android/app/src/main/java/org/libsdl/app
+          cp sdl-src/android-project/app/src/main/java/org/libsdl/app/*.java android/app/src/main/java/org/libsdl/app/
+
+      - name: Build APK
+        working-directory: android
+        run: gradle --no-daemon assembleRelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pvz-android-apk
+          path: android/app/build/outputs/apk/release/*.apk

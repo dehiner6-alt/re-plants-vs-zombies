@@ -2,6 +2,7 @@
 #include "Cutscene.h"
 #include "Challenge.h"
 #include "SeedPacket.h"
+#include "Widget/ModMenu.h"
 #include "../LawnApp.h"
 #include "CursorObject.h"
 #include "../Resources.h"
@@ -145,6 +146,11 @@ void SeedPacket::Update()
 	if (mBoard->mMainCounter == 0)
 	{
 		FlashIfReady();
+	}
+
+	if (ModCheats::gNoCooldown && !mActive && mRefreshing)
+	{
+		mRefreshCounter = mRefreshTime;
 	}
 
 	if (!mActive && mRefreshing)

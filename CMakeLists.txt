@@ -17,8 +17,10 @@ file(GLOB SOURCES
 	Lawn/*.cpp
 	Lawn/Widget/*.cpp
 	Lawn/System/*.cpp
-	SexyAppFramework/LawnProject.rc
 )
+if(WIN32)
+	list(APPEND SOURCES SexyAppFramework/LawnProject.rc)
+endif()
 
 # these files are included and must not be built in the project
 list(REMOVE_ITEM SOURCES
@@ -55,6 +57,17 @@ elseif(NINTENDO_3DS)
 	list(APPEND PLAT_INCLUDES
 		${CMAKE_CURRENT_SOURCE_DIR}/SexyAppFramework/platform/3ds
 	)
+elseif(ANDROID)
+	set(NO_GLEW ON)
+	set(VORBIS_LIBS vorbisfile vorbis)
+	list(APPEND SOURCES
+		${CMAKE_CURRENT_SOURCE_DIR}/SexyAppFramework/platform/android/graphics/Window.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/SexyAppFramework/platform/android/graphics/GLInterface.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/SexyAppFramework/platform/android/Input.cpp
+	)
+	list(APPEND PLAT_INCLUDES
+		${CMAKE_CURRENT_SOURCE_DIR}/SexyAppFramework/platform/android
+	)
 else()
 	set(VORBIS_LIBS vorbisfile vorbis)
 	list(APPEND SOURCES
@@ -87,7 +100,12 @@ set(USE_DRFLAC OFF CACHE BOOL "SDL Mixer X flac" FORCE)
 set(USE_PXTONE OFF CACHE BOOL "SDL Mixer X pxtone" FORCE)
 add_subdirectory(SexyAppFramework/sound/SDL-Mixer-X)
 
-add_executable(re-plants-vs-zombies ${SOURCES})
+if(ANDROID)
+	add_library(re-plants-vs-zombies SHARED ${SOURCES})
+	set_target_properties(re-plants-vs-zombies PROPERTIES OUTPUT_NAME main)
+else()
+	add_executable(re-plants-vs-zombies ${SOURCES})
+endif()
 target_include_directories(re-plants-vs-zombies PRIVATE
 	${PROJECT_SOURCE_DIR}/SexyAppFramework
 	${PROJECT_SOURCE_DIR}/SexyAppFramework/sound/SDL-Mixer-X/include
@@ -101,7 +119,15 @@ if (LOW_MEMORY)
 endif()
 target_compile_definitions(re-plants-vs-zombies PRIVATE IMG_DOWNSCALE=${DOWNSCALE_COUNT})
 
-target_link_libraries(re-plants-vs-zombies jpeg png z SDL2_mixer_ext_Static openmpt mpg123 ${VORBIS_LIBS} ogg ${SDL2_LIBRARIES} ${GLEW_LIBRARIES})
+if(ANDROID)
+	find_package(glm CONFIG REQUIRED)
+	target_link_libraries(re-plants-vs-zombies glm::glm)
+	target_link_libraries(re-plants-vs-zombies jpeg png z SDL2_mixer_ext_Static openmpt mpg123 ${VORBIS_LIBS} ogg
+		-Wl,--whole-archive SDL2::SDL2-static -Wl,--no-whole-archive
+		GLESv3 EGL android log OpenSLES dl m)
+else()
+	target_link_libraries(re-plants-vs-zombies jpeg png z SDL2_mixer_ext_Static openmpt mpg123 ${VORBIS_LIBS} ogg ${SDL2_LIBRARIES} ${GLEW_LIBRARIES})
+endif()
 
 if (WIN32)
 	target_link_options(re-plants-vs-zombies PRIVATE -static -static-libgcc -static-libstdc++)
@@ -138,6 +164,8 @@ elseif (NINTENDO_3DS)
 	ctr_create_3dsx(re-plants-vs-zombies
 		SMDH re-plants-vs-zombies.smdh
 	)
+elseif (ANDROID)
+	# GLES is already linked above
 else()
 	target_link_libraries(re-plants-vs-zombies GL)
 endif()
