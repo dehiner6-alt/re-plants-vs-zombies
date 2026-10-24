@@ -124,7 +124,8 @@ Whenever you need to leave a comment for other developers to find you should do 
 An Android port lives in `android/` (SDL2 + OpenGL ES 3, arm64-v8a). CI builds an APK with `.github/workflows/android.yml`.
 
 Copy `main.pak` and the `properties/` folder from your own PvZ GOTY copy to
-`Android/data/io.github.aalezz.pvzandroid/files/` before launching.
+`/sdcard/PvZ/` (Internal storage > PvZ) before launching. The first launch asks for "All files access"
+(Android 11+ required) because `Android/data` is not reachable from file managers on Android 13+.
 
 The pause menu's Options screen has a **MOD MENU** button (infinite sun, no cooldown, auto-collect, kill zombies).
 Using it flags the profile as having used cheats.

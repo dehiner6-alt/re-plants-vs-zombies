@@ -31,16 +31,27 @@ int main(int argc, char** argv)
 
 #ifdef __ANDROID__
 	// Game data (main.pak + properties/) and saves live in Android/data/<package>/files/
-	const char* aDataDir = SDL_AndroidGetExternalStoragePath();
-	if (aDataDir)
-		chdir(aDataDir);
+	// Android 11+ hides Android/data from file managers, so the data lives in /sdcard/PvZ
+	// (needs "All files access", requested by PermissionActivity). The app's own external dir is a fallback.
+	const char* aSharedDir = "/sdcard/PvZ";
+	const char* anAppDir = SDL_AndroidGetExternalStoragePath();
+	mkdir(aSharedDir, 0777);
 
 	struct stat aStat;
-	if (stat("main.pak", &aStat) != 0 || stat("properties", &aStat) != 0)
+	bool aFound = false;
+	const char* aCandidates[2] = { aSharedDir, anAppDir };
+	for (int i = 0; i < 2 && !aFound; i++)
 	{
-		std::string aMsg = "Copy main.pak and the properties folder from your PvZ GOTY copy to:\n";
-		aMsg += aDataDir ? aDataDir : "(storage unavailable)";
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Game data not found", aMsg.c_str(), NULL);
+		if (aCandidates[i] == NULL || chdir(aCandidates[i]) != 0)
+			continue;
+		aFound = stat("main.pak", &aStat) == 0 && stat("properties", &aStat) == 0;
+	}
+
+	if (!aFound)
+	{
+		chdir(aSharedDir);
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Game data not found",
+			"Copy main.pak and the properties folder from your PvZ GOTY copy to:\n/sdcard/PvZ/\n(Internal storage > PvZ)", NULL);
 		return 1;
 	}
 #endif
